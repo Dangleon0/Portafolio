@@ -1707,7 +1707,7 @@ if not SIMPLE:
         st.dataframe(ev[cols_dd].head(top_dd) if not ev.empty else pd.DataFrame(), use_container_width=True)
 
     with tab_gs:
-        st.subheader("🪙 Duelo de pares — portafolio óptimo para 2 activos")
+        st.subheader("🪙 Par óptimo — portafolio óptimo para 2 activos")
 
         if len(symbols) < 2:
             st.info("Necesitas al menos 2 activos cargados.")
