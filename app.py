@@ -54,7 +54,7 @@ except Exception:
 
 # ---------------- UI ----------------
 st.set_page_config(page_title="MT5 Portfolio Lab", page_icon="📈", layout="wide")
-st.title("📈 MT5 Portfolio Lab — modo facil (CSV MT5)")
+st.title("📈 MT5 Portfolio Lab")
 st.caption("Flujo guiado. Sin resampling. El análisis NO corre solo: tú lo disparas con un botón.")
 
 TZ_CDMX = pytz.timezone("America/Mexico_City")
@@ -1400,7 +1400,7 @@ if SIMPLE:
     tab_exec, tab_week, tab_port, tab_corr = st.tabs(["📌 Resumen Ejecutivo", "🗓️ Semana", "🧩 Portafolio", "🔗 Correlación"])
 else:
     tab_exec, tab_week, tab_port, tab_corr, tab_dd, tab_gs, tab_peaks = st.tabs(
-        ["📌 Resumen Ejecutivo", "🗓️ Semana", "🧩 Portafolio", "🔗 Correlación", "📉 Drawdowns", "🪙 Duelo de pares", "🧨 Picos vol"]
+        ["📌 Resumen Ejecutivo", "🗓️ Semana", "🧩 Portafolio", "🔗 Correlación", "📉 Drawdowns", "🪙 Par óptimo", "🧨 Picos vol"]
     )
 
 with tab_exec:
