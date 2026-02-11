@@ -296,58 +296,85 @@ def underwater_curve(close: pd.Series) -> pd.Series:
 
 
 def drawdown_events(
-    close: pd.Series,
-    min_new_high: float = 0.0,
-    min_dd: float = 0.0,
+    price: pd.DataFrame | pd.Series,
+    min_new_high: float = 0.0,  # fracción: 0.001 = 0.1%
+    min_dd: float = 0.0,        # fracción: 0.10 = 10%
 ) -> pd.DataFrame:
     """
-    Eventos: Peak -> Trough -> Recovery.
-    min_new_high: histéresis para ignorar micro-peaks (ej 0.002 = 0.2%)
-    min_dd: filtra eventos menores (ej 0.02 = solo DD >= 2%)
+    Drawdowns NO solapados (según especificación):
+    - Inicio: máximo histórico (High).
+    - Fin: mínimo posterior (Low) antes de superar ese máximo.
+    - Cierre: cuando High SUPERA el máximo previo (histéresis opcional).
+    - DD% = (Low - High) / High.
     """
-    close = close.dropna()
-    if close.empty:
+    if isinstance(price, pd.DataFrame):
+        x = price.sort_index()
+        if not {"High", "Low"}.issubset(x.columns):
+            return pd.DataFrame()
+        high = x["High"].astype(float)
+        low = x["Low"].astype(float)
+    else:
+        s = pd.Series(price).dropna().sort_index().astype(float)
+        high = s
+        low = s
+
+    if high.empty or low.empty:
         return pd.DataFrame()
 
+    eps = 1e-12
     events = []
-    peak_price = float(close.iloc[0])
-    peak_date = close.index[0]
-    trough_price = peak_price
-    trough_date = peak_date
+
+    idx = high.index
+    peak_high = float(high.iloc[0])
+    peak_date = idx[0]
+
+    trough_low = float(low.iloc[0])
+    trough_date = idx[0]
     in_dd = False
 
-    for dt, price in close.iloc[1:].items():
-        price = float(price)
-        is_new_peak = price >= peak_price * (1.0 + float(min_new_high))
+    def maybe_append(recovery_dt):
+        nonlocal in_dd
+        ddp = trough_low / peak_high - 1.0  # negativo
+        if ddp <= -float(min_dd):
+            events.append({
+                "Peak": peak_date,
+                "Peak High": peak_high,
+                "Trough": trough_date,
+                "Trough Low": trough_low,
+                "Recovery": recovery_dt,
+                "DD%": ddp,
+            })
+        in_dd = False
+
+    for dt, h, l in zip(idx[1:], high.iloc[1:], low.iloc[1:]):
+        h = float(h)
+        l = float(l)
+
+        threshold = peak_high * (1.0 + float(min_new_high))
+        is_new_peak = h > threshold + eps
 
         if is_new_peak:
             if in_dd:
-                ddp = trough_price / peak_price - 1.0
-                events.append({"Peak": peak_date, "Trough": trough_date, "Recovery": dt, "DD%": ddp})
-                in_dd = False
-            peak_price = price
+                maybe_append(dt)
+            peak_high = h
             peak_date = dt
-            trough_price = price
+            trough_low = l
             trough_date = dt
         else:
             if not in_dd:
                 in_dd = True
-                trough_price = price
+                trough_low = l
                 trough_date = dt
-            if price < trough_price:
-                trough_price = price
+            elif l < trough_low:
+                trough_low = l
                 trough_date = dt
 
     if in_dd:
-        ddp = trough_price / peak_price - 1.0
-        events.append({"Peak": peak_date, "Trough": trough_date, "Recovery": pd.NaT, "DD%": ddp})
+        maybe_append(pd.NaT)
 
     ev = pd.DataFrame(events)
     if ev.empty:
         return ev
-
-    if min_dd > 0:
-        ev = ev.loc[ev["DD%"] <= -abs(float(min_dd))].copy()
 
     ev["Peak"] = pd.to_datetime(ev["Peak"])
     ev["Trough"] = pd.to_datetime(ev["Trough"])
@@ -357,8 +384,7 @@ def drawdown_events(
     ev["Dur Trough->Recovery"] = ev["Recovery"] - ev["Trough"]
     ev["Dur Peak->Recovery"] = ev["Recovery"] - ev["Peak"]
 
-    ev = ev.sort_values("DD%").reset_index(drop=True)
-    return ev
+    return ev.sort_values("DD%").reset_index(drop=True)
 
 
 def compute_metrics(
@@ -1157,7 +1183,7 @@ with st.sidebar.expander("⚙️ Ajustes avanzados", expanded=not SIMPLE):
     trend_lookback_days = st.slider("Lookback % Tend/% Lat (días)", 30, 365, 180)
     roll_vol_days = st.slider("Vol rolling (días)", 1, 180, 30)
     roll_corr_days = st.slider("Rolling corr (días)", 1, 365, 90)
-    top_dd = st.selectbox("Top drawdowns", [3, 5, 10], index=1)
+    top_dd = st.selectbox("Top drawdowns", [3, 5, 10, 15], index=2)
     top_peaks = st.selectbox("Top picos vol", [5, 10, 20, 30], index=1)
     min_new_high = st.slider("Ignorar micro-peaks (nuevo high mínimo %)", 0.0, 1.0, 0.20, 0.05) / 100.0
     min_dd_event = st.slider("Solo eventos DD >= (%)", 0.0, 20.0, 1.0, 0.5) / 100.0
@@ -1374,7 +1400,7 @@ if SIMPLE:
     tab_exec, tab_week, tab_port, tab_corr = st.tabs(["📌 Resumen Ejecutivo", "🗓️ Semana", "🧩 Portafolio", "🔗 Correlación"])
 else:
     tab_exec, tab_week, tab_port, tab_corr, tab_dd, tab_gs, tab_peaks = st.tabs(
-        ["📌 Resumen Ejecutivo", "🗓️ Semana", "🧩 Portafolio", "🔗 Correlación", "📉 Drawdowns", "🥇 Oro vs 🥈 Plata", "🧨 Picos vol"]
+        ["📌 Resumen Ejecutivo", "🗓️ Semana", "🧩 Portafolio", "🔗 Correlación", "📉 Drawdowns", "🪙 Duelo de pares", "🧨 Picos vol"]
     )
 
 with tab_exec:
@@ -1664,65 +1690,89 @@ if not SIMPLE:
         fig.update_yaxes(tickformat=".0%")
         st.plotly_chart(fig, use_container_width=True)
 
-        ev = drawdown_events(close, min_new_high=min_new_high, min_dd=min_dd_event)
+        # Usa High/Low para detectar drawdowns no solapados (spec institucional).
+        ev = drawdown_events(df[["High", "Low"]], min_new_high=min_new_high, min_dd=min_dd_event)
         st.markdown(f"### Top {top_dd} drawdowns (filtrados)")
-        st.dataframe(ev.head(top_dd) if not ev.empty else pd.DataFrame(), use_container_width=True)
+        cols_dd = [
+            "Peak",
+            "Trough",
+            "Recovery",
+            "Peak High",
+            "Trough Low",
+            "DD%",
+            "Dur Peak->Trough",
+            "Dur Trough->Recovery",
+            "Dur Peak->Recovery",
+        ]
+        st.dataframe(ev[cols_dd].head(top_dd) if not ev.empty else pd.DataFrame(), use_container_width=True)
 
     with tab_gs:
-        st.subheader("🥇 Oro vs 🥈 Plata — últimos 5 años (precio + Vol/MA)")
+        st.subheader("🪙 Duelo de pares — portafolio óptimo para 2 activos")
 
-        gold_guess = None
-        silver_guess = None
-        for s in symbols:
-            su = s.upper()
-            if gold_guess is None and ("XAU" in su or "GOLD" in su):
-                gold_guess = s
-            if silver_guess is None and ("XAG" in su or "SILV" in su):
-                silver_guess = s
-
-        col1, col2 = st.columns(2)
-        gold_sym = col1.selectbox("Oro (XAU)", options=symbols, index=symbols.index(gold_guess) if gold_guess in symbols else 0)
-        silver_sym = col2.selectbox("Plata (XAG)", options=symbols, index=symbols.index(silver_guess) if silver_guess in symbols else (1 if len(symbols) > 1 else 0))
-
-        dfG = data[gold_sym].copy()
-        dfS = data[silver_sym].copy()
-
-        if dfG.empty or dfS.empty:
-            st.warning("No hay data suficiente para alguno de los dos.")
+        if len(symbols) < 2:
+            st.info("Necesitas al menos 2 activos cargados.")
         else:
-            end_dt = min(dfG.index.max(), dfS.index.max())
-            start_5y = end_dt - pd.Timedelta(days=int(365.25 * 5))
-            dfG = dfG.loc[dfG.index >= start_5y]
-            dfS = dfS.loc[dfS.index >= start_5y]
+            col1, col2 = st.columns(2)
+            a_sym = col1.selectbox("Activo A", options=symbols, index=0)
+            b_sym = col2.selectbox("Activo B", options=symbols, index=1 if len(symbols) > 1 else 0)
 
-            join = dfG[["Close", "Volume"]].rename(columns={"Close": "G_Close", "Volume": "G_Vol"}).join(
-                dfS[["Close", "Volume"]].rename(columns={"Close": "S_Close", "Volume": "S_Vol"}),
-                how="inner",
-            ).dropna(subset=["G_Close", "S_Close"])
+            dfA = data[a_sym].copy()
+            dfB = data[b_sym].copy()
 
-            if join.shape[0] < 200:
-                st.info("Poco traslape en la ventana 5y.")
+            if dfA.empty or dfB.empty:
+                st.warning("No hay data suficiente para alguno de los dos.")
             else:
-                g_norm = join["G_Close"] / join["G_Close"].iloc[0]
-                s_norm = join["S_Close"] / join["S_Close"].iloc[0]
+                end_dt = min(dfA.index.max(), dfB.index.max())
+                start_dt = max(dfA.index.min(), dfB.index.min())
+                join = dfA[["Close"]].rename(columns={"Close": f"{a_sym}_Close"}).join(
+                    dfB[["Close"]].rename(columns={"Close": f"{b_sym}_Close"}),
+                    how="inner",
+                ).dropna()
 
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(x=join.index, y=g_norm, mode="lines", name=gold_sym))
-                fig.add_trace(go.Scatter(x=join.index, y=s_norm, mode="lines", name=silver_sym))
-                fig.update_layout(title="Precio normalizado (5 años)", height=300, margin=dict(l=20, r=20, t=50, b=20))
-                st.plotly_chart(fig, use_container_width=True)
+                if join.shape[0] < 100:
+                    st.info("Poco traslape entre los dos activos. Sube CSVs con fechas comunes.")
+                else:
+                    # Pesos óptimos (mismo algoritmo que recomendación general: Risk Parity sobre cov shrink)
+                    lr = np.log(join).diff().dropna()
+                    cov = shrink_cov(lr.cov(), lam=0.10, jitter=1e-10)
+                    w_pair = risk_parity_weights(cov)
 
-                dt = infer_dt(join.index)
-                bpd = bars_per_day_from_dt(dt) or 1.0
-                win = int(max(20, 20 * bpd))
-                g_vrel = join["G_Vol"] / join["G_Vol"].rolling(win).mean()
-                s_vrel = join["S_Vol"] / join["S_Vol"].rolling(win).mean()
+                    st.markdown("#### Pesos sugeridos (Risk Parity)")
+                    st.dataframe(w_pair.to_frame("Peso"), use_container_width=True)
 
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(x=join.index, y=g_vrel, mode="lines", name=f"{gold_sym} Vol/MA"))
-                fig.add_trace(go.Scatter(x=join.index, y=s_vrel, mode="lines", name=f"{silver_sym} Vol/MA"))
-                fig.update_layout(title="Volumen relativo (TickVol): Vol/MA(≈20 días)", height=260, margin=dict(l=20, r=20, t=50, b=20))
-                st.plotly_chart(fig, use_container_width=True)
+                    port_lr = (lr * w_pair).sum(axis=1)
+                    port_curve = np.exp(port_lr.cumsum())
+
+                    fig = go.Figure()
+                    fig.add_trace(go.Scatter(x=join.index, y=join[f"{a_sym}_Close"] / join[f"{a_sym}_Close"].iloc[0], mode="lines", name=a_sym))
+                    fig.add_trace(go.Scatter(x=join.index, y=join[f"{b_sym}_Close"] / join[f"{b_sym}_Close"].iloc[0], mode="lines", name=b_sym))
+                    fig.add_trace(go.Scatter(x=port_curve.index, y=port_curve.values / port_curve.iloc[0], mode="lines", name="Portafolio RP", line=dict(width=3)))
+                    fig.update_layout(title="Precio normalizado (rango común)", height=300, margin=dict(l=20, r=20, t=50, b=20))
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    # Métricas del par
+                    ann = ann_factor_from_index(port_lr.index, trading_days=trading_days)
+                    vol = float(port_lr.std(ddof=0) * np.sqrt(ann))
+                    mean = float(port_lr.mean() * ann)
+                    sharpe = mean / vol if vol > 0 else np.nan
+                    dd_pair = underwater_curve(port_curve)
+                    mdd_pair = float(dd_pair.min()) if not dd_pair.empty else np.nan
+
+                    cpa, cpb, cpp = st.columns(3)
+                    cpa.metric("Vol anual A", fmt_pct(lr[f"{a_sym}_Close"].std(ddof=0) * np.sqrt(ann)) if not lr.empty else "—")
+                    cpb.metric("Vol anual B", fmt_pct(lr[f"{b_sym}_Close"].std(ddof=0) * np.sqrt(ann)) if not lr.empty else "—")
+                    cpp.metric("Vol anual Port", fmt_pct(vol) if pd.notna(vol) else "—")
+
+                    csa, csb, csp = st.columns(3)
+                    sharpe_a = (lr[f"{a_sym}_Close"].mean() * ann) / (lr[f"{a_sym}_Close"].std(ddof=0) * np.sqrt(ann)) if lr.shape[0] else np.nan
+                    sharpe_b = (lr[f"{b_sym}_Close"].mean() * ann) / (lr[f"{b_sym}_Close"].std(ddof=0) * np.sqrt(ann)) if lr.shape[0] else np.nan
+                    csa.metric("Sharpe A", f"{sharpe_a:.2f}" if pd.notna(sharpe_a) else "—")
+                    csb.metric("Sharpe B", f"{sharpe_b:.2f}" if pd.notna(sharpe_b) else "—")
+                    csp.metric("Sharpe Port", f"{sharpe:.2f}" if pd.notna(sharpe) else "—")
+
+                    cdd1, cdd2 = st.columns(2)
+                    cdd1.metric("MaxDD Port", fmt_pct(mdd_pair) if pd.notna(mdd_pair) else "—")
+                    cdd2.metric("Rango analizado", f"{start_dt.date()} → {end_dt.date()}")
 
     with tab_peaks:
         st.subheader("🧨 Picos de volatilidad + drilldown")
