@@ -64,13 +64,14 @@ st.markdown(
     :root {
         --font-head: "Space Grotesk", "IBM Plex Sans", sans-serif;
         --font-body: "IBM Plex Sans", "Space Grotesk", sans-serif;
-        --ink: #0b1324;
-        --muted: #526171;
-        --accent: #2563eb;
-        --accent-strong: #1d4ed8;
-        --card: #ffffff;
-        --stroke: #d6dee9;
-        --shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+        --ink: #e5e7eb;
+        --muted: #9aa5b1;
+        --accent: #3b82f6;
+        --accent-strong: #2563eb;
+        --card: #0f172a;
+        --card-2: #111827;
+        --stroke: #1f2937;
+        --shadow: 0 18px 36px rgba(2, 6, 23, 0.45);
     }
 
     html, body, [class*="css"] {
@@ -80,9 +81,9 @@ st.markdown(
 
     .stApp {
         background:
-            radial-gradient(900px 520px at -10% -20%, #dbeafe 0%, rgba(219, 234, 254, 0) 60%),
-            radial-gradient(900px 520px at 110% -10%, #e0e7ff 0%, rgba(224, 231, 255, 0) 55%),
-            linear-gradient(180deg, #eef2f7 0%, #f7f9fc 55%, #edf2f8 100%);
+            radial-gradient(900px 520px at -10% -20%, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0) 60%),
+            radial-gradient(900px 520px at 110% -10%, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0) 55%),
+            linear-gradient(180deg, #0b1220 0%, #0f172a 55%, #0a1120 100%);
     }
 
     .block-container {
@@ -93,10 +94,11 @@ st.markdown(
     h1, h2, h3, h4, h5, h6 {
         font-family: var(--font-head);
         letter-spacing: -0.02em;
+        color: var(--ink);
     }
 
     h1 {
-        font-size: 2.15rem;
+        font-size: 2.1rem;
     }
 
     p, li, span {
@@ -104,26 +106,34 @@ st.markdown(
     }
 
     header[data-testid="stHeader"] {
-        background: rgba(238, 242, 247, 0.95);
+        background: rgba(11, 18, 32, 0.92);
         border-bottom: 1px solid var(--stroke);
         backdrop-filter: blur(6px);
     }
 
+    header[data-testid="stHeader"] * {
+        color: #cbd5e1;
+    }
+
+    header[data-testid="stHeader"] svg {
+        fill: #cbd5e1;
+    }
+
     div[data-testid="stToolbar"] {
-        background: rgba(238, 242, 247, 0.9);
+        background: rgba(15, 23, 42, 0.9);
         border: 1px solid var(--stroke);
         border-radius: 999px;
         padding: 0.2rem 0.6rem;
-        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+        box-shadow: 0 8px 18px rgba(2, 6, 23, 0.35);
     }
 
     div[data-testid="stDecoration"] {
-        background: linear-gradient(90deg, #2563eb, #38bdf8);
+        background: linear-gradient(90deg, #3b82f6, #06b6d4);
         height: 3px;
     }
 
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f3f6fb 0%, #e9eef6 100%);
+        background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
         border-right: 1px solid var(--stroke);
     }
 
@@ -133,7 +143,7 @@ st.markdown(
     section[data-testid="stSidebar"] p,
     section[data-testid="stSidebar"] span,
     section[data-testid="stSidebar"] label {
-        color: #0b1220;
+        color: #e5e7eb;
     }
 
     .stButton > button {
@@ -142,12 +152,12 @@ st.markdown(
         border: none;
         padding: 0.55rem 1.1rem;
         border-radius: 999px;
-        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.22);
+        box-shadow: 0 12px 22px rgba(37, 99, 235, 0.28);
         font-weight: 600;
     }
 
     .stButton > button:hover {
-        filter: brightness(1.03);
+        filter: brightness(1.05);
         transform: translateY(-1px);
     }
 
@@ -173,15 +183,15 @@ st.markdown(
     }
 
     div[data-testid="stDataFrame"] [role="grid"] {
-        background: #f8fafc;
+        background: var(--card);
     }
 
     div[data-testid="stDataFrame"] [role="row"] {
-        background: #ffffff;
+        background: var(--card-2);
     }
 
     div[data-testid="stDataFrame"] [role="row"]:nth-child(even) {
-        background: #f3f6fb;
+        background: #0c1424;
     }
 
     div[data-testid="stDataFrame"] [role="gridcell"],
@@ -190,7 +200,7 @@ st.markdown(
     }
 
     div[data-testid="stDataFrame"] [role="columnheader"] {
-        background: #e9eef6;
+        background: #111b2d;
         font-weight: 600;
     }
 
@@ -198,7 +208,7 @@ st.markdown(
         border-radius: 999px;
         padding: 0.35rem 0.9rem;
         margin-right: 0.4rem;
-        background: #e4ebf7;
+        background: #111b2d;
         color: var(--ink);
         font-weight: 600;
     }
@@ -219,13 +229,13 @@ st.markdown(
 
     div[data-testid="stFileUploader"] {
         background: var(--card);
-        border: 1px dashed #c7d2fe;
+        border: 1px dashed #24324a;
         border-radius: 16px;
         padding: 0.75rem;
     }
 
     div[data-testid="stFileUploader"] button {
-        background: #e2e8f0;
+        background: #111b2d;
         color: var(--ink);
         border: 1px solid var(--stroke);
         border-radius: 999px;
