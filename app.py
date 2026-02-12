@@ -64,13 +64,13 @@ st.markdown(
     :root {
         --font-head: "Space Grotesk", "IBM Plex Sans", sans-serif;
         --font-body: "IBM Plex Sans", "Space Grotesk", sans-serif;
-        --ink: #0f172a;
-        --muted: #475569;
-        --accent: #0f766e;
-        --accent-strong: #0d9488;
+        --ink: #0b1324;
+        --muted: #526171;
+        --accent: #2563eb;
+        --accent-strong: #1d4ed8;
         --card: #ffffff;
-        --stroke: #e2e8f0;
-        --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        --stroke: #d6dee9;
+        --shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
     }
 
     html, body, [class*="css"] {
@@ -80,9 +80,9 @@ st.markdown(
 
     .stApp {
         background:
-            radial-gradient(1200px 600px at -10% -20%, #e0f2fe 0%, rgba(224, 242, 254, 0) 60%),
-            radial-gradient(900px 500px at 110% -10%, #dcfce7 0%, rgba(220, 252, 231, 0) 55%),
-            linear-gradient(180deg, #f8fafc 0%, #ffffff 60%, #f1f5f9 100%);
+            radial-gradient(900px 520px at -10% -20%, #dbeafe 0%, rgba(219, 234, 254, 0) 60%),
+            radial-gradient(900px 520px at 110% -10%, #e0e7ff 0%, rgba(224, 231, 255, 0) 55%),
+            linear-gradient(180deg, #eef2f7 0%, #f7f9fc 55%, #edf2f8 100%);
     }
 
     .block-container {
@@ -103,8 +103,27 @@ st.markdown(
         color: var(--ink);
     }
 
+    header[data-testid="stHeader"] {
+        background: rgba(238, 242, 247, 0.95);
+        border-bottom: 1px solid var(--stroke);
+        backdrop-filter: blur(6px);
+    }
+
+    div[data-testid="stToolbar"] {
+        background: rgba(238, 242, 247, 0.9);
+        border: 1px solid var(--stroke);
+        border-radius: 999px;
+        padding: 0.2rem 0.6rem;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    div[data-testid="stDecoration"] {
+        background: linear-gradient(90deg, #2563eb, #38bdf8);
+        height: 3px;
+    }
+
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+        background: linear-gradient(180deg, #f3f6fb 0%, #e9eef6 100%);
         border-right: 1px solid var(--stroke);
     }
 
@@ -123,7 +142,7 @@ st.markdown(
         border: none;
         padding: 0.55rem 1.1rem;
         border-radius: 999px;
-        box-shadow: 0 10px 20px rgba(15, 118, 110, 0.25);
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.22);
         font-weight: 600;
     }
 
@@ -153,19 +172,41 @@ st.markdown(
         padding: 0.2rem;
     }
 
+    div[data-testid="stDataFrame"] [role="grid"] {
+        background: #f8fafc;
+    }
+
+    div[data-testid="stDataFrame"] [role="row"] {
+        background: #ffffff;
+    }
+
+    div[data-testid="stDataFrame"] [role="row"]:nth-child(even) {
+        background: #f3f6fb;
+    }
+
+    div[data-testid="stDataFrame"] [role="gridcell"],
+    div[data-testid="stDataFrame"] [role="columnheader"] {
+        color: var(--ink);
+    }
+
+    div[data-testid="stDataFrame"] [role="columnheader"] {
+        background: #e9eef6;
+        font-weight: 600;
+    }
+
     div[data-testid="stTabs"] button[role="tab"] {
         border-radius: 999px;
         padding: 0.35rem 0.9rem;
         margin-right: 0.4rem;
-        background: #e2e8f0;
-        color: #0f172a;
+        background: #e4ebf7;
+        color: var(--ink);
         font-weight: 600;
     }
 
     div[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
-        background: #0f766e;
+        background: var(--accent);
         color: #ffffff;
-        box-shadow: 0 8px 18px rgba(15, 118, 110, 0.25);
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
     }
 
     div[data-testid="stMarkdownContainer"] > p {
@@ -178,9 +219,18 @@ st.markdown(
 
     div[data-testid="stFileUploader"] {
         background: var(--card);
-        border: 1px dashed #cbd5f5;
+        border: 1px dashed #c7d2fe;
         border-radius: 16px;
         padding: 0.75rem;
+    }
+
+    div[data-testid="stFileUploader"] button {
+        background: #e2e8f0;
+        color: var(--ink);
+        border: 1px solid var(--stroke);
+        border-radius: 999px;
+        font-weight: 600;
+        box-shadow: none;
     }
 
     div[data-testid="stExpander"] {
