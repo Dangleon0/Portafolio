@@ -56,6 +56,149 @@ except Exception:
 st.set_page_config(page_title="MT5 Portfolio Lab", page_icon="📈", layout="wide")
 st.title("📈 MT5 Portfolio Lab")
 st.caption("Flujo guiado. Sin resampling. El análisis NO corre solo: tú lo disparas con un botón.")
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+    :root {
+        --font-head: "Space Grotesk", "IBM Plex Sans", sans-serif;
+        --font-body: "IBM Plex Sans", "Space Grotesk", sans-serif;
+        --ink: #0f172a;
+        --muted: #475569;
+        --accent: #0f766e;
+        --accent-strong: #0d9488;
+        --card: #ffffff;
+        --stroke: #e2e8f0;
+        --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    html, body, [class*="css"] {
+        font-family: var(--font-body);
+        color: var(--ink);
+    }
+
+    .stApp {
+        background:
+            radial-gradient(1200px 600px at -10% -20%, #e0f2fe 0%, rgba(224, 242, 254, 0) 60%),
+            radial-gradient(900px 500px at 110% -10%, #dcfce7 0%, rgba(220, 252, 231, 0) 55%),
+            linear-gradient(180deg, #f8fafc 0%, #ffffff 60%, #f1f5f9 100%);
+    }
+
+    .block-container {
+        padding-top: 2.25rem;
+        max-width: 1400px;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-head);
+        letter-spacing: -0.02em;
+    }
+
+    h1 {
+        font-size: 2.15rem;
+    }
+
+    p, li, span {
+        color: var(--ink);
+    }
+
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+        border-right: 1px solid var(--stroke);
+    }
+
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] label {
+        color: #0b1220;
+    }
+
+    .stButton > button {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        color: #ffffff;
+        border: none;
+        padding: 0.55rem 1.1rem;
+        border-radius: 999px;
+        box-shadow: 0 10px 20px rgba(15, 118, 110, 0.25);
+        font-weight: 600;
+    }
+
+    .stButton > button:hover {
+        filter: brightness(1.03);
+        transform: translateY(-1px);
+    }
+
+    div[data-testid="stMetric"] {
+        background: var(--card);
+        border: 1px solid var(--stroke);
+        border-radius: 16px;
+        padding: 0.85rem 1rem;
+        box-shadow: var(--shadow);
+    }
+
+    div[data-testid="stMetric"] label {
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    div[data-testid="stDataFrame"] {
+        background: var(--card);
+        border: 1px solid var(--stroke);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 0.2rem;
+    }
+
+    div[data-testid="stTabs"] button[role="tab"] {
+        border-radius: 999px;
+        padding: 0.35rem 0.9rem;
+        margin-right: 0.4rem;
+        background: #e2e8f0;
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    div[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+        background: #0f766e;
+        color: #ffffff;
+        box-shadow: 0 8px 18px rgba(15, 118, 110, 0.25);
+    }
+
+    div[data-testid="stMarkdownContainer"] > p {
+        color: var(--ink);
+    }
+
+    .stCaption {
+        color: var(--muted);
+    }
+
+    div[data-testid="stFileUploader"] {
+        background: var(--card);
+        border: 1px dashed #cbd5f5;
+        border-radius: 16px;
+        padding: 0.75rem;
+    }
+
+    div[data-testid="stExpander"] {
+        background: var(--card);
+        border: 1px solid var(--stroke);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+    }
+
+    hr {
+        border: none;
+        border-top: 1px solid var(--stroke);
+        margin: 1.5rem 0;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 TZ_CDMX = pytz.timezone("America/Mexico_City")
 
